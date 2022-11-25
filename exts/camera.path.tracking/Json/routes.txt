@@ -1,0 +1,19 @@
+{
+  "routes": [
+    {
+      "routename": "Route 01 (Default)",
+      "status": "on",
+      "rotate": "enable"
+    },
+    {
+      "routename": "Route 02",
+      "status": "on",
+      "rotate": "enable"
+    },
+    {
+      "routename": "Route 03",
+      "status": "on",
+      "rotate": "enable"
+    }
+  ]
+}
