@@ -13,7 +13,9 @@ SecondPerTarget = []
 AnglePerTarget = []
 TranslateDirection = []
 target = 1
-speed = 110
+speed = 200
+routeCount = 0
+selectedRoute = 2
 
 class dataController:
 
@@ -83,6 +85,8 @@ class Attachment_Info:
     global TranslateDirection
     global target
     global speed
+    global routeCount
+    global selectedRoute
 
     def StartUp():
         Attachment_Info.distanceHub = []
@@ -92,10 +96,25 @@ class Attachment_Info:
         Attachment_Info.AnglePerTarget = []
         Attachment_Info.target = target
         Attachment_Info.speed = speed
-        print(Attachment_Info.speed)
+        Attachment_Info.routeCount = Attachment_Info.countRoute()
+        Attachment_Info.selectedRoute = selectedRoute
+        print(Attachment_Info.routeCount)
         
     def restart():
         Attachment_Info.target = target
+
+    def countRoute():
+        data = dataController.get_json_data()
+        return len(data)
+    
+    def routeName():
+        name = 'routes_0' + str(Attachment_Info.selectedRoute)
+        print(name)
+        return name
+    
+    def changeRoute(routenum):
+        Attachment_Info.selectedRoute = routenum
+        print(Attachment_Info.selectedRoute)
 
     def add_cam_target():
         Attachment_Info.target = Attachment_Info.target+1

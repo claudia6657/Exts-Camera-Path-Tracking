@@ -13,8 +13,8 @@ from .data_controller import *
 
 # Variable
 defaultTranslate = (0, 100, 0)
-primPath = r'/World/Cameras/Camera/camera'
-cameraPath = r'/World/Cameras/SettingCamera/camera'
+primPath = r'/World/RouteCameras/Camera/camera'
+cameraPath = r'/World/RouteCameras/SettingCamera/camera'
 temp_routeName = 'routes_01'
 
 class ExtensionModel:
@@ -38,8 +38,8 @@ class ExtensionModel:
 
         # Create Camera
  
-        self.primPath = r'/World/Cameras/Camera/camera'
-        self.camPath = r'/World/Cameras/SettingCamera/camera'
+        self.primPath = r'/World/RouteCameras/Camera/camera'
+        self.camPath = r'/World/RouteCameras/SettingCamera/camera'
         omni.kit.commands.execute('CreatePrimWithDefaultXformCommand', prim_type='Camera', prim_path=self.primPath, attributes={'focusDistance': 400, 'focalLength': 24})
         omni.kit.commands.execute('CreatePrimWithDefaultXformCommand', prim_type='Camera', prim_path=self.camPath, attributes={'focusDistance': 400, 'focalLength': 24})
         
@@ -58,8 +58,8 @@ class ExtensionModel:
     
     # Move Camera Translation
     def move_to_target():
-        targetSet = dataController.get_route_data(temp_routeName, "Translate")
-
+        
+        targetSet = dataController.get_route_data(Attachment_Info.routeName(), "Translate")
         # Get targets        
         currentTarget = Attachment_Info.target
         targetT, currentT = ExtensionModel.get_target_data(currentTarget, "Translate")
@@ -126,7 +126,7 @@ class ExtensionModel:
 
     # Get Target
     def get_target_data(currentTarget, att):
-        targetSet = dataController.get_route_data(temp_routeName, att)
+        targetSet = dataController.get_route_data(Attachment_Info.routeName(), att)
         #if len(targetSet) <= currentTarget :return
         target = targetSet["Target_"+str(currentTarget)]
         default = targetSet["Target_"+str(currentTarget-1)]
@@ -224,9 +224,9 @@ class ExtensionModel:
     def info_Startup(self):
         self.count_Dist_FPT()
         self.count_anglepersec()
-        # init target 
-        transData = dataController.get_route_data(temp_routeName, "Translate")
-        rotateData = dataController.get_route_data(temp_routeName, "Rotation")
+        # init target
+        transData = dataController.get_route_data(Attachment_Info.routeName(), "Translate")
+        rotateData = dataController.get_route_data(Attachment_Info.routeName(), "Rotation")
 
         for i in range(0, len(transData)):
             target = 'Target_'+ str(i)
@@ -234,7 +234,7 @@ class ExtensionModel:
         
     # Count Eu-Dist and FPT AND keep info. in Attachment
     def count_Dist_FPT(self):
-        target_trans = dataController.get_route_data(temp_routeName, "Translate")
+        target_trans = dataController.get_route_data(Attachment_Info.routeName(), "Translate")
 
         for i in range(0, len(target_trans)-1):
             targetN1 = 'Target_'+ str(i)
@@ -256,7 +256,7 @@ class ExtensionModel:
         return 0
 
     def count_anglepersec(self):
-        target_rotates = dataController.get_route_data(temp_routeName, "Rotation")
+        target_rotates = dataController.get_route_data(Attachment_Info.routeName(), "Rotation")
 
         for i in range(0, len(target_rotates)-1):
             targetN1 = 'Target_'+ str(i)

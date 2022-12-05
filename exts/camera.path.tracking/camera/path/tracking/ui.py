@@ -1,6 +1,5 @@
 import omni.ui as ui
-import omni.timeline
-
+from typing import List
 from .data_controller import *
 
 Basic_BTN_Height = 40
@@ -56,12 +55,103 @@ Header_Styles = {
     }
 }
 
+# ==========================================================================
+# Treeview
+# ==========================================================================
+class RouteItem(ui.AbstractItem):
+    """Single item of the model"""
+
+    def __init__(self, text):
+        super().__init__()
+        self.name_model = ui.SimpleStringModel(text)
+class RouteModel(ui.AbstractItemModel):
+    """
+    Represents the list of commands registered in Kit.
+    It is used to make a single level tree appear like a simple list.
+    """
+
+    def __init__(self, routes):
+        super().__init__()
+        self._route_changed(routes)
+
+    def get_item_children(self, item):
+        """Returns all the children when the widget asks it."""
+        if item is not None:
+            # Since we are doing a flat list, we return the children of root only.
+            # If it's not root we return.
+            return []
+
+        return self.routes
+
+    def get_item_value_model_count(self, item):
+        """The number of columns"""
+        return 1
+
+    def get_item_value_model(self, item, column_id):
+        """
+        Return value model.
+        It's the object that tracks the specific value.
+        In our case we use ui.SimpleStringModel.
+        """
+        if item and isinstance(item, RouteItem):
+            return item.name_model
+
+    def _route_changed(self, routes):
+        self.routes = []
+        for i in range(1, routes+1):
+            RouteName = 'Route 0' + str(i)
+            self.routes.append(RouteItem(RouteName))
+        self._item_changed(None)
+
+class TargetItem(ui.AbstractItem):
+    """Single item of the model"""
+
+    def __init__(self, text):
+        super().__init__()
+        self.name_model = ui.SimpleStringModel(text)
+class TargetModel(ui.AbstractItemModel):
+    """
+    Represents the list of commands registered in Kit.
+    It is used to make a single level tree appear like a simple list.
+    """
+
+    def __init__(self, targets):
+        super().__init__()
+        self._target_changed(targets)
+
+    def get_item_children(self, item):
+        """Returns all the children when the widget asks it."""
+        if item is not None:
+            # Since we are doing a flat list, we return the children of root only.
+            # If it's not root we return.
+            return []
+
+        return self.routes
+
+    def get_item_value_model_count(self, item):
+        """The number of columns"""
+        return 1
+
+    def get_item_value_model(self, item, column_id):
+        """
+        Return value model.
+        It's the object that tracks the specific value.
+        In our case we use ui.SimpleStringModel.
+        """
+        if item and isinstance(item, RouteItem):
+            return item.name_model
+
+    def _target_changed(self, targets):
+        self.routes = []
+        for i in range(0, targets):
+            RouteName = '/World/Target/Cube_' + str(i)
+            self.routes.append(RouteItem(RouteName))
+        self._item_changed(None)
 class ExtensionUI():
 
     def __init__(self, controller):
         self._controller = controller
         self.base_targetPrimPath = '/World/Target/Cube_'
-        self._routeData = self.update_target_info()
         self._speed = Attachment_Info.speed
 
     def build_ui(self):
@@ -89,19 +179,30 @@ class ExtensionUI():
                 )
                 with self._controls_frame:
                     with ui.VStack():
+                        self._route_model = RouteModel(self.get_routeCount())
+                        tree_view = ui.TreeView(
+                            self._route_model, root_visible=False, header_visible=False,
+                            selection_changed_fn = self.on_selection_route_change,
+                            style={"TreeView.Item": {"margin": 4}}
+                        )
+                        ui.Label("")
                         ui.Button(
                             "ADD",
                             clicked_fn = self._controller._on_click_add_camera,
                         )
                 self._target_frame = ui.CollapsableFrame(
-                    "Targets", collapsed=False,
+                    "Route Targets", collapsed=False,
                     height=Collapse_frame_Height,
                     style=CollapsableControlFrameStyle
                 )
                 with self._target_frame:
                     with ui.VStack():
-                        self._route_data()
-                        print("UPDATE!!")
+                        #ui.Label(self.get_routeName(), height=Basic_Label_Height)
+                        self._target_model = TargetModel(len(self.get_route_data()))
+                        tree_view = ui.TreeView(
+                            self._target_model, root_visible=False, header_visible=False,
+                            style={"TreeView.Item": {"margin": 4, "font_size": 16}}
+                        )
                         ui.Label("")
                         ui.Button(
                             "ADD",
@@ -123,11 +224,18 @@ class ExtensionUI():
     # UI
     # ==========================================================================
 
+    def on_selection_route_change(self, selected_items):
+        for item in selected_items:
+            newroute = item.name_model.as_string
+            num = newroute.split("0")
+            Attachment_Info.changeRoute(int(num[1]))
+        self.update_target_info()
+
     # Target data UI
     def _route_data(self):
+        self.get_route_data()
         for i in range(0, len(self._routePrim)):
             self._route_target(i, self._routePrim[i])
-            #self._route_target(data, self._routeData[data])
 
     # target collapse
     def _route_target(self, dataId, dataValue):
@@ -148,24 +256,53 @@ class ExtensionUI():
 
     def _settingCheckBox(self, title):
         with ui.HStack():
-            ui.Label(title, alignmaent=ui.Alignment.LEFT_CENTER)
-            ui.CheckBox(alignmaent=ui.Alignment.RIGHT_CENTER)
+            ui.Label(title, alignmaent=ui.Alignment.LEFT_CENTER, width=150)
+            ui.CheckBox(alignmaent=ui.Alignment.LEFT_CENTER)
+
+    # ==========================================================================
+    # CallBack
+    # ==========================================================================
+    def get_routeCount(self):
+        count = Attachment_Info.routeCount
+        self._routeCount = count
+        return count
+    
+    def get_selectedRoute(self):
+        selected = Attachment_Info.selectedRoute
+        self.selectedRoute = selected
+        return selected
+    
+    def get_routeName(self):
+        count = self.get_selectedRoute()
+        name = 'routes_0' + str(count)
+        return name
+    
+    def get_route_data(self):
+        routeName = self.get_routeName()
+        targets = dataController.get_route_data(routeName, 'Translate')
+        self.get_route_Prim(targets)
+        return targets
+    
+    def get_route_Prim(self, targets):
+        self._routePrim = []
+        for i in range(0, len(targets)):
+            path = self.base_targetPrimPath + str(i)
+            self._routePrim.append(path)
+
     # ==========================================================================
     # Playback
     # ==========================================================================
     
     def update_target_info(self):
-        target = dataController.get_route_data('routes_01', 'Translate')
-        self._routeData = target
-        self._routePrim = []
-        for i in range(0, len(target)):
-            path = self.base_targetPrimPath + str(i)
-            self._routePrim.append(path)
-        self._route_data()
-        return target
+        routeCount = self.get_routeCount()
+        self._route_model._route_changed(routeCount)
+        targets = self.get_route_data()
+        self._target_model._target_changed(len(targets))
 
     def teardown(self):
         self._controller = None
         self._controls_frame = None
         self._target_frame = None
+        self._setting_frame = None
+        self._route_model = None
         self._window = None

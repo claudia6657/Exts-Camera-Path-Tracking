@@ -55,10 +55,13 @@ class CameraPathTrackingExtension(omni.ext.IExt):
         CamR = R[0], R[1], R[2]
 
         addTarget = False
-        addTarget = dataController.add_new_target("routes_01", CamT, CamR)
+        addTarget = dataController.add_new_target(Attachment_Info.routeName(), CamT, CamR)
         self.model.create_prim('Cube', (CamT), (CamR))
 
         self._ui.update_target_info()
+    
+    def _on_click_select_route(self, num):
+        Attachment_Info.changeRoute(num)
 
     # ==========================================================================
     # Callbacks
