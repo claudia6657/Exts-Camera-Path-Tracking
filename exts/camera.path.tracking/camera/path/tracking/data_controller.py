@@ -16,6 +16,7 @@ target = 1
 speed = 200
 routeCount = 0
 selectedRoute = 2
+isStaticRo = False
 
 class dataController:
 
@@ -51,15 +52,60 @@ class dataController:
         translate.update(newTranslate)
         data[routeName]['Translate'] = translate
 
-        """ADD Translate {Key : VALUE}"""
+        """ADD Rotation {Key : VALUE}"""
         newRotate = {key:rotCam}
         rotate.update(newRotate)
         data[routeName]['Rotation'] = rotate
 
         dataController.write_json(routeFilePath, data)
+        return True
+    # RM Target
+    def del_target(routeName, target):
+        data = dataController.get_json_data()
+        translate = dataController.get_route_data(routeName, 'Translate')
+        rotate = dataController.get_route_data(routeName, 'Rotation')
+        
+        key = 'Target_' + str(target)
+        translate.pop(key, 0)
+        rotate.pop(key, 0)
+        data[routeName]['Translate'] = translate
+        data[routeName]['Rotation'] = rotate
 
+        dataController.write_json(routeFilePath, data)
+        return True 
+    
+    # clear Tatget
+    def clear_target(routeName):
+        data = dataController.get_json_data()
+        routeDefaultData = {"Translate":{},"Rotation":{}}
+        data[routeName] = routeDefaultData
+
+        dataController.write_json(routeFilePath, data)
+        return True
+    
+    # New Route
+    def add_new_route():
+        data = dataController.get_json_data()
+        routeName = "routes_0" +str(len(data)+1)
+        routeDefaultData = {"Translate":{},"Rotation":{}}
+        new_route = {routeName:routeDefaultData}
+        data.update(new_route)
+
+        dataController.write_json(routeFilePath, data)
+        Attachment_Info.routeCount = Attachment_Info.countRoute()
         return True
 
+    # RM Route
+    def rm_route():
+        data = dataController.get_json_data()
+        route = Attachment_Info.routeName()
+        data.pop(route, 3000)
+
+        Attachment_Info.selectedRoute -= 1
+        dataController.write_json(routeFilePath, data)
+        Attachment_Info.routeCount = Attachment_Info.countRoute()
+        return True
+        
     # Get camera Position
     def _get_camera_pos(cameraPath, cameraPrim):
         viewport = get_active_viewport()
@@ -87,6 +133,7 @@ class Attachment_Info:
     global speed
     global routeCount
     global selectedRoute
+    global isStaticRo
 
     def StartUp():
         Attachment_Info.distanceHub = []
@@ -98,7 +145,8 @@ class Attachment_Info:
         Attachment_Info.speed = speed
         Attachment_Info.routeCount = Attachment_Info.countRoute()
         Attachment_Info.selectedRoute = selectedRoute
-        print(Attachment_Info.routeCount)
+        Attachment_Info.isStaticRo = isStaticRo
+        print(Attachment_Info.isStaticRo)
         
     def restart():
         Attachment_Info.target = target
@@ -115,6 +163,10 @@ class Attachment_Info:
     def changeRoute(routenum):
         Attachment_Info.selectedRoute = routenum
         print(Attachment_Info.selectedRoute)
+    
+    def changeRotSetting():
+        Attachment_Info.isStaticRo = not Attachment_Info.isStaticRo
+        print(Attachment_Info.isStaticRo)
 
     def add_cam_target():
         Attachment_Info.target = Attachment_Info.target+1

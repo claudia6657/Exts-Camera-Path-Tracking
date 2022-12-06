@@ -35,8 +35,10 @@ CollapsableControlFrameStyle = {
     "ComboBox": {"margin_height": 0, "margin_width": Margin, "border_radius": Border_radius},
     "Label": {"margin_height": 0, "margin_width": Margin, "width":Basic_Label_Width, "color": 0xFF979797},
     "Label:disabled": {"color": 0xFF888888},
+    "Label:hovered":{"secondary_color": 0xFF3C3C3C},
     "Field": {"margin_width": innerMargin},
-    "CheckBox": {"margin_width": innerMargin}
+    "CheckBox": {"margin_width": innerMargin},
+    "Line": {"color":0xFF888888}
 }
 
 Button_Styles = {
@@ -53,6 +55,9 @@ Header_Styles = {
     "HStack":{
         "margin_height": 10
     }
+}
+Label_spec = {
+    "Label:hovered":{"secondary_color": 0xFF3C3C3C}
 }
 
 # ==========================================================================
@@ -153,6 +158,7 @@ class ExtensionUI():
         self._controller = controller
         self.base_targetPrimPath = '/World/Target/Cube_'
         self._speed = Attachment_Info.speed
+        self._target_selected = ''
 
     def build_ui(self):
         self._window = ui.Window("Camera Controller", width=400, height=250)
@@ -183,13 +189,25 @@ class ExtensionUI():
                         tree_view = ui.TreeView(
                             self._route_model, root_visible=False, header_visible=False,
                             selection_changed_fn = self.on_selection_route_change,
-                            style={"TreeView.Item": {"margin": 4}}
+                            style={"TreeView.Item": {"margin": 4, "font_size": 16}}
                         )
+                        ui.Line()
+                        with ui.HStack(margin=Margin): 
+                            ui.Button(
+                                "ADD",
+                                alignmaent=ui.Alignment.LEFT_CENTER,
+                                width=70,
+                                height=15,
+                                clicked_fn = self._controller._on_click_add_route,
+                            )
+                            ui.Button(
+                                "REMOVE",
+                                alignmaent=ui.Alignment.LEFT_CENTER,
+                                clicked_fn = self._controller._on_click_rm_route,
+                                width=70,
+                                height=15
+                            )
                         ui.Label("")
-                        ui.Button(
-                            "ADD",
-                            clicked_fn = self._controller._on_click_add_camera,
-                        )
                 self._target_frame = ui.CollapsableFrame(
                     "Route Targets", collapsed=False,
                     height=Collapse_frame_Height,
@@ -201,14 +219,37 @@ class ExtensionUI():
                         self._target_model = TargetModel(len(self.get_route_data()))
                         tree_view = ui.TreeView(
                             self._target_model, root_visible=False, header_visible=False,
+                            selection_changed_fn = self.on_selection_target_change,
                             style={"TreeView.Item": {"margin": 4, "font_size": 16}}
                         )
+                        ui.Line()
+                        with ui.HStack(margin=Margin):                        
+                            ui.Button(
+                                "ADD",
+                                alignmaent=ui.Alignment.LEFT_CENTER,
+                                clicked_fn = self._controller._on_click_add_target,
+                                width=70,
+                                height=15
+                            )
+                            '''
+                            ui.Button(
+                                "REMOVE",
+                                alignmaent=ui.Alignment.LEFT_CENTER,
+                                clicked_fn = self._controller._on_click_add_target,
+                                width=70,
+                                height=15
+                            )
+                            '''
+                            ui.Label("")
+                            ui.Button(
+                                "Clear All",
+                                alignmaent=ui.Alignment.RIGHT_CENTER,
+                                clicked_fn = self._controller._on_click_clear_route,
+                                width=70,
+                                height=15
+                            )
                         ui.Label("")
-                        ui.Button(
-                            "ADD",
-                            alignmaent=ui.Alignment.LEFT_CENTER,
-                            clicked_fn = self._controller._on_click_add_target,
-                        )
+                            
                 self._setting_frame = ui.CollapsableFrame(
                     "Setting", collapsed=False,
                     height=Collapse_frame_Height,
@@ -230,6 +271,11 @@ class ExtensionUI():
             num = newroute.split("0")
             Attachment_Info.changeRoute(int(num[1]))
         self.update_target_info()
+    
+    def on_selection_target_change(self, selected_item):
+        for item in selected_item:
+            target_selected = item.name_model.as_string
+            self._target_selected = target_selected.split("_")
 
     # Target data UI
     def _route_data(self):
@@ -257,7 +303,15 @@ class ExtensionUI():
     def _settingCheckBox(self, title):
         with ui.HStack():
             ui.Label(title, alignmaent=ui.Alignment.LEFT_CENTER, width=150)
-            ui.CheckBox(alignmaent=ui.Alignment.LEFT_CENTER)
+            staticrotation = ui.CheckBox(alignmaent=ui.Alignment.LEFT_CENTER)
+            ABLE = ui.Label(staticrotation.model.get_value_as_string())
+            staticrotation.model.add_value_changed_fn(
+                lambda A, B=ABLE:self.change_checkbox(A.get_value_as_string(), ABLE)
+            )
+
+    def change_checkbox(self, value, ABLE):
+        Attachment_Info.changeRotSetting()
+        ABLE.text = value
 
     # ==========================================================================
     # CallBack

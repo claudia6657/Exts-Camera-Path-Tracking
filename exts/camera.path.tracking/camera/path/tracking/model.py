@@ -60,6 +60,7 @@ class ExtensionModel:
     def move_to_target():
         
         targetSet = dataController.get_route_data(Attachment_Info.routeName(), "Translate")
+        isStaticRo = Attachment_Info.isStaticRo
         # Get targets        
         currentTarget = Attachment_Info.target
         targetT, currentT = ExtensionModel.get_target_data(currentTarget, "Translate")
@@ -98,10 +99,12 @@ class ExtensionModel:
                 Attachment_Info.add_cam_target()
         
         # Translate change
-        if Arrived == False:
+        if Arrived == False and isStaticRo == False:
             ExtensionModel.move_translate(targetT, currentT, secondThisTarget, targetTime)
             ExtensionModel.move_rotation(currentR, secondThisTarget, angleThisTarget, targetTime)
-
+        if Arrived == False and isStaticRo == True:
+            ExtensionModel.move_translate(targetT, currentT, secondThisTarget, targetTime)
+        
         return 0
 
     # Set New Translate

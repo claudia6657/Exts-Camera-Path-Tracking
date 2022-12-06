@@ -46,8 +46,13 @@ class CameraPathTrackingExtension(omni.ext.IExt):
     # Events
     # =========================================================================
 
-    def _on_click_add_camera(self):
-        self.model.create_new_camera(self.model.primPath)
+    def _on_click_add_route(self):
+        add = dataController.add_new_route()
+        self._ui.update_target_info()
+
+    def _on_click_rm_route(self):
+        rm = dataController.rm_route()
+        self._ui.update_target_info()
     
     def _on_click_add_target(self):
         T, R = dataController._get_camera_pos(self.model.camPath, self.model.getCamPrim)
@@ -58,6 +63,14 @@ class CameraPathTrackingExtension(omni.ext.IExt):
         addTarget = dataController.add_new_target(Attachment_Info.routeName(), CamT, CamR)
         self.model.create_prim('Cube', (CamT), (CamR))
 
+        self._ui.update_target_info()
+    
+    def _on_click_rm_target(self):
+        dataController.del_target(Attachment_Info.routeName(), self._ui._target_selected)
+        self._ui.update_target_info()
+
+    def _on_click_clear_route(self):
+        dataController.clear_target(Attachment_Info.routeName())
         self._ui.update_target_info()
     
     def _on_click_select_route(self, num):
